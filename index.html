@@ -1,369 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Bill Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    :root {
-      --bg-color: #f7f7f7;
-      --text-color: #000;
-      --card-bg: #fff;
-      --table-header: #eaeaea;
-      --accent: #1e88e5;
-      --accent-hover: #1565c0;
-    }
-    body.dark-mode {
-      --bg-color: #1e1e1e;
-      --text-color: #f1f1f1;
-      --card-bg: #2c2c2c;
-      --table-header: #444;
-      --accent: #64b5f6;
-      --accent-hover: #42a5f5;
-    }
-    * {
-      box-sizing: border-box;
-      transition: all 0.3s ease-in-out;
-    }
-    body {
-      font-family: Arial, sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
-      margin: 0;
-      padding: 20px;
-    }
-    .theme-switch {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 999;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 30px;
-    }
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      border-radius: 34px;
-    }
-    .slider:before {
-      position: absolute;
-      content: '☀️';
-      height: 26px;
-      width: 26px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.4s;
-    }
-    input:checked + .slider {
-      background-color: var(--accent);
-    }
-    input:checked + .slider:before {
-      transform: translateX(30px);
-      content: '🌙';
-    }
+    <meta charset="UTF-8">
+    <title>Bill Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f7f7f7;
+            --text-color: #000;
+            --card-bg: #fff;
+            --table-header: #eaeaea;
+            --accent: #1e88e5;
+            --accent-hover: #1565c0;
+        }
+        body.dark-mode {
+            --bg-color: #1e1e1e;
+            --text-color: #f1f1f1;
+            --card-bg: #2c2c2c;
+            --table-header: #444;
+            --accent: #64b5f6;
+            --accent-hover: #42a5f5;
+        }
+        * { box-sizing: border-box; transition: all 0.3s ease-in-out; }
+        body { font-family: Arial, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
+        .theme-switch { position: fixed; top:10px; right:10px; z-index:999; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; border-radius:34px; }
+        .slider:before { position:absolute; content:'☀️'; height:26px; width:26px; left:2px; bottom:2px; background-color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:0.4s; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform:translateX(30px); content:'🌙'; }
 
-    #invoice {
-      max-width: 850px;
-      margin: auto;
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    }
+        #invoice { max-width:900px; margin:auto; background: var(--card-bg); padding:20px; border-radius:10px; box-shadow:0 0 12px rgba(0,0,0,0.1); }
+        h2,h4,p { text-align:center; margin:5px 0; }
 
-    h2, h4, p {
-      text-align: center;
-      margin: 5px 0;
-    }
+        .form-columns { display:flex; justify-content:space-between; width:100%; margin-top:20px; }
+        .form-column { width:48%; }
 
-    .form-group {
-      margin-bottom: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+        .form-group { margin-bottom:10px; display:flex; gap:10px; }
+        label { width:180px; font-weight:bold; }
+        input,textarea { flex:1; padding:6px; border-radius:4px; border:1px solid #ccc; background: var(--card-bg); color: var(--text-color); width:100%; }
+        input:focus,textarea:focus { border-color: var(--accent); box-shadow:0 0 4px var(--accent); }
+        
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th,td { border:1px solid #444; padding:8px; text-align:center; }
+        th { background: var(--table-header); }
+        td[contenteditable="true"]:hover { background: var(--accent); color:white; }
+        
+        .totals-section { text-align: right; padding: 10px 0; }
+        .totals-section div { display: flex; justify-content: flex-end; align-items: center; gap: 20px; margin-bottom: 5px; }
+        .totals-section span { font-weight: bold; width: 100px; text-align: left; }
 
-    label {
-      width: 180px;
-      font-weight: bold;
-    }
+        .btn { padding:10px 16px; background: var(--accent); color:white; border:none; border-radius:5px; margin:10px 5px 0 0; cursor:pointer; transition:0.3s ease; }
+        .btn:hover { background: var(--accent-hover); transform:scale(1.05); }
+        .btn-danger { background:#f44336; }
+        .btn-danger:hover { background:#d32f2f; }
 
-    input, textarea {
-      flex: 1;
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      background: var(--card-bg);
-      color: var(--text-color);
-    }
+        .no-print { text-align:center; }
+        .pdf-hide-only { display:table-cell; }
+        .pdf-hide { display:inline-block; }
 
-    input:focus, textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 4px var(--accent);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #444;
-      padding: 8px;
-      text-align: center;
-    }
-
-    th {
-      background: var(--table-header);
-    }
-
-    td[contenteditable="true"]:hover {
-      background: var(--accent);
-      color: white;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin: 10px 5px 0 0;
-      cursor: pointer;
-      transition: 0.3s ease;
-    }
-
-    .btn:hover {
-      background: var(--accent-hover);
-      transform: scale(1.05);
-    }
-
-    .btn-danger {
-      background: #f44336;
-    }
-
-    .btn-danger:hover {
-      background: #d32f2f;
-    }
-
-    .no-print { text-align: center; }
-    .pdf-hide-only { display: table-cell; }
-
-    @media print {
-      .no-print, .theme-switch { display: none !important; }
-      input, textarea { border: none; outline: none; }
-      .pdf-hide-only { display: none !important; }
-    }
-
-    @media (max-width: 768px) {
-      .form-group {
-        flex-direction: column;
-      }
-      label {
-        width: 100%;
-        margin-bottom: 5px;
-      }
-      input, textarea {
-        width: 100%;
-      }
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      thead {
-        display: none;
-      }
-      tbody tr {
-        margin-bottom: 15px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px;
-      }
-      tbody td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-      }
-      tbody td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        width: 45%;
-        text-align: left;
-        font-weight: bold;
-        color: var(--text-color);
-      }
-      .no-print button {
-        width: 100%;
-        margin-bottom: 10px;
-      }
-    }
-  </style>
+        @media print { .no-print,.theme-switch { display:none !important; } input,textarea { border:none; outline:none; } .pdf-hide-only { display:none !important; } }
+        @media (max-width:768px) { 
+            .form-columns { flex-direction:column; } 
+            label { width:100%; margin-bottom:5px; } 
+            input,textarea { width:100%; } 
+            table,thead,tbody,th,td,tr { display:block; } 
+            thead { display:none; } 
+            tbody tr { margin-bottom:15px; border:1px solid #ccc; border-radius:5px; padding:10px; } 
+            tbody td { text-align:right; padding-left:50%; position:relative; } 
+            tbody td::before { content: attr(data-label); position:absolute; left:10px; width:45%; text-align:left; font-weight:bold; color: var(--text-color); } 
+            .no-print button { width:100%; margin-bottom:10px; } 
+        }
+    </style>
 </head>
 <body>
 
 <div class="theme-switch">
-  <label class="switch">
-    <input type="checkbox" onchange="document.body.classList.toggle('dark-mode')">
-    <span class="slider"></span>
-  </label>
+    <label class="switch"><input type="checkbox" onchange="document.body.classList.toggle('dark-mode')"><span class="slider"></span></label>
 </div>
 
 <div id="invoice">
-  <h2>SWEZEN POWER SOLUTIONS</h2>
-  <h4>B-112 SHAILJA HOMES, RADHANPUR ROAD, MAHESANA, GUJARAT - 384002</h4>
-  <p>GSTIN: 24AFKFS8288K1Z5</p>
-  <p>Contact: +91 9662777888 | sweszenpowersolutions2615@gmail.com</p>
-  <hr>
+    <h2>SWEZEN POWER SOLUTIONS</h2>
+    <h4>B-112 SHAILJA HOMES, RADHANPUR ROAD, MAHESANA, GUJARAT - 384002</h4>
+    <p>GSTIN: 24AFKFS8288K1Z5</p>
+    <p>Contact: +91 9662777888 | sweszenpowersolutions2615@gmail.com</p>
+    <hr>
 
-  <div class="form-group">
-    <label>Reference Number:</label>
-    <input type="text" id="refNo">
-  </div>
-  <div class="form-group">
-    <label>Date:</label>
-    <input type="date" id="billDate">
-  </div>
-  <div class="form-group">
-    <label>Customer Name:</label>
-    <input type="text" id="customerName">
-  </div>
-  <div class="form-group">
-    <label>Address:</label>
-    <textarea id="address" rows="2"></textarea>
-  </div>
+    <div class="form-columns">
+        <div class="form-column">
+            <div class="form-group"><label>Invoice Number:</label><input type="text" id="refNo"></div>
+            <div class="form-group"><label>Invoice Date:</label><input type="date" id="billDate"></div>
+            <div class="form-group"><label>Customer Name:</label><input type="text" id="customerName"></div>
+            <div class="form-group"><label>Address:</label><textarea id="address" rows="2"></textarea></div>
+            <div class="form-group"><label>State:</label><input type="text" id="state" value="Gujarat"></div>
+        </div>
+        <div class="form-column">
+            <div class="form-group"><label>Transport Mode:</label><input type="text" id="transportMode"></div>
+            <div class="form-group"><label>Vehicle Number:</label><input type="text" id="vehicleNumber"></div>
+            <div class="form-group"><label>Date of Supply:</label><input type="date" id="supplyDate"></div>
+            <div class="form-group"><label>E-Way Bill No:</label><input type="text" id="ewayBillNo"></div>
+        </div>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Sr</th>
-        <th>Material</th>
-        <th>Qty</th>
-        <th>Rate</th>
-        <th class="pdf-hide-only">GST%</th>
-        <th class="pdf-hide-only">Total</th>
-        <th class="pdf-hide-only">Remove</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Sr</th>
+                <th style="width: 30%;">Material</th>
+                <th>HSN</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th class="pdf-hide-only">GST%</th>
+                <th class="pdf-hide-only">Total</th>
+                <th class="pdf-hide-only remove-btn">Remove</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
 
-  <h3>Grand Total: <span id="grandTotal">₹ 0.00</span></h3>
+    <div class="totals-section">
+        <div>Subtotal: <span id="subTotal">₹ 0.00</span></div>
+        <div id="sgst-line" class="tax-line">SGST: <span id="sgstTotal">₹ 0.00</span></div>
+        <div id="cgst-line" class="tax-line">CGST: <span id="cgstTotal">₹ 0.00</span></div>
+        <div id="igst-line" class="tax-line">IGST: <span id="igstTotal">₹ 0.00</span></div>
+        <h3 style="margin-top: 10px;">Grand Total: <span id="grandTotal">₹ 0.00</span></h3>
+    </div>
 
-  <div class="no-print">
-    <button class="btn" onclick="validateBeforeAdd()">+ Add Material</button>
-    <button class="btn" onclick="generatePDF()">Download PDF</button>
-  </div>
+    <div class="no-print pdf-hide">
+        <button class="btn" onclick="validateBeforeAdd()">+ Add Material</button>
+        <button class="btn" onclick="generatePDF()">Download PDF</button>
+        <button class="btn" onclick="window.print()">Print</button>
+    </div>
 </div>
 
 <script>
-  function validateFields() {
-    const ids = ['refNo', 'billDate', 'customerName', 'address'];
-    for (let id of ids) {
-      if (!document.getElementById(id).value.trim()) {
-        alert("Please fill in all required fields.");
-        return false;
-      }
-    }
-
+function validateFields() {
+    const ids = ['refNo','billDate','customerName','address'];
+    for(let id of ids){ if(!document.getElementById(id).value.trim()){ alert("Please fill in all required fields."); return false; } }
     const rows = document.querySelectorAll("#tableBody tr");
-    for (let row of rows) {
-      const desc = row.cells[1].innerText.trim();
-      const qty = row.querySelector(".qty").value.trim();
-      const rate = row.querySelector(".rate").value.trim();
-      if (!desc || !qty || !rate) {
-        alert("Please complete all material rows.");
-        return false;
-      }
+    for(let row of rows){ 
+        const desc = row.cells[1].innerText.trim();
+        const qty = row.querySelector(".qty").value.trim();
+        const rate = row.querySelector(".rate").value.trim();
+        if(!desc||!qty||!rate){ alert("Please complete all material rows."); return false; } 
     }
     return true;
-  }
+}
 
-  function validateBeforeAdd() {
-    if (validateFields() || document.querySelectorAll("#tableBody tr").length === 0) {
-      addRow();
-    }
-  }
+function validateBeforeAdd(){ if(validateFields() || document.querySelectorAll("#tableBody tr").length===0){ addRow(); } }
 
-  function addRow() {
+function addRow(){
     const tbody = document.getElementById("tableBody");
     const row = tbody.insertRow();
     row.innerHTML = `
-      <td data-label="Sr"></td>
-      <td data-label="Material" contenteditable="true"></td>
-      <td data-label="Qty"><input class="qty" type="number" value="1"></td>
-      <td data-label="Rate"><input class="rate" type="number" value="0"></td>
-      <td class="pdf-hide-only" data-label="GST%"><input class="gst" type="number" value="18" readonly></td>
-      <td class="pdf-hide-only total" data-label="Total">₹ 0.00</td>
-      <td class="pdf-hide-only" data-label="Remove"><button class="btn btn-danger" onclick="removeRow(this)">X</button></td>
-    `;
+        <td data-label="Sr"></td>
+        <td data-label="Material" contenteditable="true"></td>
+        <td data-label="HSN"><input class="hsn" type="text" value=""></td>
+        <td data-label="Qty"><input class="qty" type="number" value="1"></td>
+        <td data-label="Rate"><input class="rate" type="number" value="0"></td>
+        <td class="pdf-hide-only" data-label="GST%"><input class="gst" type="number" value="0"></td>
+        <td class="pdf-hide-only" data-label="Total">₹ 0.00</td>
+        <td class="pdf-hide-only remove-btn" data-label="Remove"><button class="btn btn-danger" onclick="removeRow(this)">X</button></td>`;
     row.querySelector(".qty").addEventListener("input", calculateTotal);
     row.querySelector(".rate").addEventListener("input", calculateTotal);
+    row.querySelector(".gst").addEventListener("input", calculateTotal);
+    
     calculateTotal();
-  }
+}
 
-  function removeRow(btn) {
-    btn.closest("tr").remove();
-    calculateTotal();
-  }
+function removeRow(btn){ btn.closest("tr").remove(); calculateTotal(); }
 
-  function calculateTotal() {
-    let total = 0;
+function calculateTotal(){
+    let subTotal=0;
+    let totalGST=0;
+    const isGujarat = document.getElementById('state').value.toLowerCase() === 'gujarat';
+
     const rows = document.querySelectorAll("#tableBody tr");
-    rows.forEach((row, i) => {
-      const qty = parseFloat(row.querySelector(".qty").value) || 0;
-      const rate = parseFloat(row.querySelector(".rate").value) || 0;
-      const gst = parseFloat(row.querySelector(".gst").value) || 0;
-      const base = qty * rate;
-      const gstAmt = base * gst / 100;
-      const rowTotal = base + gstAmt;
-      row.cells[0].innerText = i + 1;
-      row.querySelector(".total").innerText = `₹ ${rowTotal.toFixed(2)}`;
-      total += rowTotal;
-    });
-    document.getElementById("grandTotal").innerText = `₹ ${total.toFixed(2)}`;
-  }
+    let visibleIndex = 1;
 
-  function generatePDF() {
-    if (!validateFields()) return;
-    if (document.querySelectorAll("#tableBody tr").length === 0) {
-      alert("Please add at least one material.");
-      return;
+    rows.forEach(row=>{
+        const qty = parseFloat(row.querySelector(".qty").value) || 0;
+        const rate = parseFloat(row.querySelector(".rate").value) || 0;
+        const gst = parseFloat(row.querySelector(".gst").value) || 0;
+        const base = qty * rate;
+        const gstAmt = (base * gst / 100);
+        const rowTotal = base + gstAmt;
+
+        row.cells[0].innerText = visibleIndex++;
+        row.cells[6].innerText = `₹ ${rowTotal.toFixed(2)}`;
+        
+        subTotal += base;
+        totalGST += gstAmt;
+    });
+
+    const grandTotal = subTotal + totalGST;
+    
+    document.getElementById("subTotal").innerText = `₹ ${subTotal.toFixed(2)}`;
+    document.getElementById("grandTotal").innerText = `₹ ${grandTotal.toFixed(2)}`;
+    
+    if (isGujarat) {
+        document.getElementById("sgstTotal").innerText = `₹ ${(totalGST / 2).toFixed(2)}`;
+        document.getElementById("cgstTotal").innerText = `₹ ${(totalGST / 2).toFixed(2)}`;
+        document.getElementById('sgst-line').style.display = 'flex';
+        document.getElementById('cgst-line').style.display = 'flex';
+        document.getElementById('igst-line').style.display = 'none';
+    } else {
+        document.getElementById('sgst-line').style.display = 'none';
+        document.getElementById('cgst-line').style.display = 'none';
+        document.getElementById("igstTotal").innerText = `₹ ${totalGST.toFixed(2)}`;
+        document.getElementById('igst-line').style.display = 'flex';
+    }
+}
+
+document.getElementById('state').addEventListener('input', calculateTotal);
+
+function generatePDF(){
+    if(!validateFields()) return;
+    if(document.querySelectorAll("#tableBody tr").length===0){ alert("Please add at least one material."); return; }
+
+    const originalDisplay = {};
+    document.querySelectorAll(".remove-btn, .pdf-hide").forEach(el=>{
+        originalDisplay[el] = el.style.display;
+        el.style.display = "none";
+    });
+    
+    const isGujarat = document.getElementById('state').value.toLowerCase() === 'gujarat';
+    if(isGujarat){
+        document.getElementById('sgst-line').style.display = 'flex';
+        document.getElementById('cgst-line').style.display = 'flex';
+        document.getElementById('igst-line').style.display = 'none';
+    } else {
+        document.getElementById('sgst-line').style.display = 'none';
+        document.getElementById('cgst-line').style.display = 'none';
+        document.getElementById('igst-line').style.display = 'flex';
     }
 
-    document.querySelectorAll(".no-print, .pdf-hide-only").forEach(el => el.style.display = "none");
-
-    setTimeout(() => {
-      html2pdf().from(document.getElementById("invoice")).set({
-        margin: 0.5,
-        filename: `Bill_${document.getElementById("refNo").value || 'Invoice'}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { format: 'a4', orientation: 'portrait' }
-      }).save().then(() => {
-        document.querySelectorAll(".no-print, .pdf-hide-only").forEach(el => el.style.display = "");
-      });
-    }, 100);
-  }
+    setTimeout(()=>{
+        html2pdf().from(document.getElementById("invoice")).set({
+            margin:0.5,
+            filename:`Bill_${document.getElementById("refNo").value || 'Invoice'}.pdf`,
+            html2canvas:{scale:2},
+            jsPDF:{format:'a4', orientation:'portrait'}
+        }).save().then(()=>{
+            for(let el in originalDisplay){
+                el.style.display = originalDisplay[el];
+            }
+        });
+    },100);
+}
 </script>
 </body>
 </html>
