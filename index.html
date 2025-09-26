@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bill Generator</title>
+    <title>Bill Generator app</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -104,17 +104,38 @@
             .no-print button { width: 100%; margin-bottom: 10px; }
         }
         
+        /* Media query specifically for printing and PDF generation */
         @media print { 
-            .no-print, .theme-switch { display: none !important; } 
-            input, textarea { border: none; outline: none; } 
+            .no-print, .theme-switch, .remove-btn, th.remove-col { display: none !important; } 
+            
+            input, textarea { 
+                border: none !important;
+                background: none !important;
+                outline: none !important;
+                box-shadow: none !important;
+                padding: 0;
+            }
+            .form-group { align-items: flex-start; }
+            label { width: 180px; }
+
             .pdf-hide-only { display: none !important; }
-            .form-group { flex-direction: row; align-items: center; }
+            
+            .form-columns { flex-direction: row; justify-content: space-between; }
             .form-column { width: 48%; }
-            table, thead, tbody, th, td, tr { display: table; }
+            .form-group { flex-direction: row; align-items: center; }
+            
+            table { width: 100%; display: table; }
             thead { display: table-header-group; }
-            tbody tr { display: table-row; }
-            tbody td { display: table-cell; }
+            tbody { display: table-row-group; }
+            tbody tr { display: table-row; page-break-inside: avoid; }
+            tbody td { display: table-cell; border: 1px solid #444; padding: 8px; }
             tbody td::before { display: none; }
+            
+            .totals-section { text-align: right; }
+            .totals-section div, .totals-section h3 {
+                justify-content: flex-end;
+                gap: 20px;
+            }
         }
     </style>
 </head>
@@ -128,22 +149,22 @@
     <h2>SWEZEN POWER SOLUTIONS</h2>
     <h4>B-112 SHAILJA HOMES, RADHANPUR ROAD, MAHESANA, GUJARAT - 384002</h4>
     <p>GSTIN: 24AFKFS8288K1Z5</p>
-    <p>Contact: +91 9662777888 | sweszenpowersolutions2615@gmail.com</p>
+    <p>Contact: +91 9662777888 | sweszenpowersolution2615@gmail.com</p>
     <hr>
 
     <div class="form-columns">
         <div class="form-column">
-            <div class="form-group"><label>Invoice Number:</label><input type="text" id="refNo"></div>
-            <div class="form-group"><label>Invoice Date:</label><input type="date" id="billDate"></div>
-            <div class="form-group"><label>Customer Name:</label><input type="text" id="customerName"></div>
-            <div class="form-group"><label>Address:</label><textarea id="address" rows="2"></textarea></div>
-            <div class="form-group"><label>State:</label><input type="text" id="state" value="Gujarat"></div>
+            <div class="form-group"><label>Invoice Number:</label><span class="print-value" id="printRefNo"></span><input type="text" id="refNo"></div>
+            <div class="form-group"><label>Invoice Date:</label><span class="print-value" id="printBillDate"></span><input type="date" id="billDate"></div>
+            <div class="form-group"><label>Customer Name:</label><span class="print-value" id="printCustomerName"></span><input type="text" id="customerName"></div>
+            <div class="form-group"><label>Address:</label><span class="print-value" id="printAddress"></span><textarea id="address" rows="2"></textarea></div>
+            <div class="form-group"><label>State:</label><span class="print-value" id="printState"></span><input type="text" id="state" value="Gujarat"></div>
         </div>
         <div class="form-column">
-            <div class="form-group"><label>Transport Mode:</label><input type="text" id="transportMode"></div>
-            <div class="form-group"><label>Vehicle Number:</label><input type="text" id="vehicleNumber"></div>
-            <div class="form-group"><label>Date of Supply:</label><input type="date" id="supplyDate"></div>
-            <div class="form-group"><label>E-Way Bill No:</label><input type="text" id="ewayBillNo"></div>
+            <div class="form-group"><label>Transport Mode:</label><span class="print-value" id="printTransportMode"></span><input type="text" id="transportMode"></div>
+            <div class="form-group"><label>Vehicle Number:</label><span class="print-value" id="printVehicleNumber"></span><input type="text" id="vehicleNumber"></div>
+            <div class="form-group"><label>Date of Supply:</label><span class="print-value" id="printSupplyDate"></span><input type="date" id="supplyDate"></div>
+            <div class="form-group"><label>E-Way Bill No:</label><span class="print-value" id="printEwayBillNo"></span><input type="text" id="ewayBillNo"></div>
         </div>
     </div>
 
@@ -157,7 +178,7 @@
                 <th>Rate</th>
                 <th class="pdf-hide-only">GST%</th>
                 <th class="pdf-hide-only">Total</th>
-                <th class="pdf-hide-only remove-btn">Remove</th>
+                <th class="pdf-hide-only remove-btn remove-col">Remove</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -264,11 +285,20 @@ function generatePDF(){
     if(document.querySelectorAll("#tableBody tr").length===0){ alert("Please add at least one material."); return; }
 
     const originalDisplay = {};
-    document.querySelectorAll(".remove-btn, .pdf-hide").forEach(el=>{
+    document.querySelectorAll(".no-print, .pdf-hide, .remove-btn, th.remove-col").forEach(el=>{
         originalDisplay[el] = el.style.display;
         el.style.display = "none";
     });
     
+    const inputs = document.querySelectorAll('.form-group input, .form-group textarea');
+    inputs.forEach(input => {
+        const span = document.getElementById(`print${input.id.charAt(0).toUpperCase() + input.id.slice(1)}`);
+        if(span) {
+            span.textContent = input.value;
+            input.style.display = 'none';
+        }
+    });
+
     const isGujarat = document.getElementById('state').value.toLowerCase() === 'gujarat';
     if(isGujarat){
         document.getElementById('sgst-line').style.display = 'flex';
@@ -290,6 +320,13 @@ function generatePDF(){
             for(let el in originalDisplay){
                 el.style.display = originalDisplay[el];
             }
+            inputs.forEach(input => {
+                const span = document.getElementById(`print${input.id.charAt(0).toUpperCase() + input.id.slice(1)}`);
+                if(span) {
+                    input.style.display = '';
+                    span.textContent = '';
+                }
+            });
         });
     },100);
 }
