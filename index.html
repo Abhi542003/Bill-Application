@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bill Generator app</title>
+    <title>Bill Generator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -22,8 +22,70 @@
             --accent: #64b5f6;
             --accent-hover: #42a5f5;
         }
+
+        /* --- Animated Background --- */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+        }
+
+        body:hover {
+            background-position: 100% 50%;
+            transition: background-position 0.5s ease;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Loading Spinner Styles --- */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #fff;
+            border-top: 5px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* --- Existing Styles --- */
         * { box-sizing: border-box; transition: all 0.3s ease-in-out; }
-        body { font-family: Arial, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
         .theme-switch { position: fixed; top:10px; right:10px; z-index:999; }
         .switch { position: relative; display: inline-block; width: 60px; height: 30px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -41,6 +103,13 @@
         .form-group { margin-bottom:10px; display:flex; gap:10px; }
         label { width:180px; font-weight:bold; }
         input,textarea { flex:1; padding:6px; border-radius:4px; border:1px solid #ccc; background: var(--card-bg); color: var(--text-color); width:100%; }
+        
+        input:hover, textarea:hover {
+            transform: scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+        }
+
         input:focus,textarea:focus { border-color: var(--accent); box-shadow:0 0 4px var(--accent); }
         
         table { width:100%; border-collapse:collapse; margin-top:20px; }
@@ -106,7 +175,7 @@
         
         /* Media query specifically for printing and PDF generation */
         @media print { 
-            .no-print, .theme-switch, .remove-btn, th.remove-col { display: none !important; } 
+            .no-print, .theme-switch, .remove-btn, th.remove-col, .loading-overlay { display: none !important; } 
             
             input, textarea { 
                 border: none !important;
@@ -146,25 +215,28 @@
 </div>
 
 <div id="invoice">
+    <div class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
     <h2>SWEZEN POWER SOLUTIONS</h2>
     <h4>B-112 SHAILJA HOMES, RADHANPUR ROAD, MAHESANA, GUJARAT - 384002</h4>
     <p>GSTIN: 24AFKFS8288K1Z5</p>
-    <p>Contact: +91 9662777888 | sweszenpowersolution2615@gmail.com</p>
+    <p>Contact: +91 9662777888 | sweszenpowersolutions2615@gmail.com</p>
     <hr>
 
     <div class="form-columns">
         <div class="form-column">
-            <div class="form-group"><label>Invoice Number:</label><span class="print-value" id="printRefNo"></span><input type="text" id="refNo"></div>
-            <div class="form-group"><label>Invoice Date:</label><span class="print-value" id="printBillDate"></span><input type="date" id="billDate"></div>
-            <div class="form-group"><label>Customer Name:</label><span class="print-value" id="printCustomerName"></span><input type="text" id="customerName"></div>
-            <div class="form-group"><label>Address:</label><span class="print-value" id="printAddress"></span><textarea id="address" rows="2"></textarea></div>
-            <div class="form-group"><label>State:</label><span class="print-value" id="printState"></span><input type="text" id="state" value="Gujarat"></div>
+            <div class="form-group"><label>Invoice Number:</label><span class="print-value" id="printRefNo"></span><input type="text" id="refNo" placeholder="Invoice Number"></div>
+            <div class="form-group"><label>Invoice Date:</label><span class="print-value" id="printBillDate"></span><input type="date" id="billDate" placeholder="Invoice Date"></div>
+            <div class="form-group"><label>Customer Name:</label><span class="print-value" id="printCustomerName"></span><input type="text" id="customerName" placeholder="Customer Name"></div>
+            <div class="form-group"><label>Address:</label><span class="print-value" id="printAddress"></span><textarea id="address" rows="2" placeholder="Address"></textarea></div>
+            <div class="form-group"><label>State:</label><span class="print-value" id="printState"></span><input type="text" id="state" value="Gujarat" placeholder="State"></div>
         </div>
         <div class="form-column">
-            <div class="form-group"><label>Transport Mode:</label><span class="print-value" id="printTransportMode"></span><input type="text" id="transportMode"></div>
-            <div class="form-group"><label>Vehicle Number:</label><span class="print-value" id="printVehicleNumber"></span><input type="text" id="vehicleNumber"></div>
-            <div class="form-group"><label>Date of Supply:</label><span class="print-value" id="printSupplyDate"></span><input type="date" id="supplyDate"></div>
-            <div class="form-group"><label>E-Way Bill No:</label><span class="print-value" id="printEwayBillNo"></span><input type="text" id="ewayBillNo"></div>
+            <div class="form-group"><label>Transport Mode:</label><span class="print-value" id="printTransportMode"></span><input type="text" id="transportMode" placeholder="Transport Mode"></div>
+            <div class="form-group"><label>Vehicle Number:</label><span class="print-value" id="printVehicleNumber"></span><input type="text" id="vehicleNumber" placeholder="Vehicle Number"></div>
+            <div class="form-group"><label>Date of Supply:</label><span class="print-value" id="printSupplyDate"></span><input type="date" id="supplyDate" placeholder="Date of Supply"></div>
+            <div class="form-group"><label>E-Way Bill No:</label><span class="print-value" id="printEwayBillNo"></span><input type="text" id="ewayBillNo" placeholder="E-Way Bill No"></div>
         </div>
     </div>
 
@@ -195,7 +267,6 @@
     <div class="no-print pdf-hide">
         <button class="btn" onclick="validateBeforeAdd()">+ Add Material</button>
         <button class="btn" onclick="generatePDF()">Download PDF</button>
-        <button class="btn" onclick="window.print()">Print</button>
     </div>
 </div>
 
@@ -221,10 +292,10 @@ function addRow(){
     row.innerHTML = `
         <td data-label="Sr"></td>
         <td data-label="Material" contenteditable="true"></td>
-        <td data-label="HSN"><input class="hsn" type="text" value=""></td>
-        <td data-label="Qty"><input class="qty" type="number" value="1"></td>
-        <td data-label="Rate"><input class="rate" type="number" value="0"></td>
-        <td class="pdf-hide-only" data-label="GST%"><input class="gst" type="number" value="0"></td>
+        <td data-label="HSN"><input class="hsn" type="text" value="" placeholder="HSN"></td>
+        <td data-label="Qty"><input class="qty" type="number" value="" placeholder="Qty"></td>
+        <td data-label="Rate"><input class="rate" type="number" value="" placeholder="Rate"></td>
+        <td class="pdf-hide-only" data-label="GST%"><input class="gst" type="number" value="" placeholder="GST%"></td>
         <td class="pdf-hide-only" data-label="Total">₹ 0.00</td>
         <td class="pdf-hide-only remove-btn" data-label="Remove"><button class="btn btn-danger" onclick="removeRow(this)">X</button></td>`;
     row.querySelector(".qty").addEventListener("input", calculateTotal);
@@ -284,13 +355,16 @@ function generatePDF(){
     if(!validateFields()) return;
     if(document.querySelectorAll("#tableBody tr").length===0){ alert("Please add at least one material."); return; }
 
+    const loadingOverlay = document.querySelector('.loading-overlay');
+    loadingOverlay.classList.add('show');
+
     const originalDisplay = {};
     document.querySelectorAll(".no-print, .pdf-hide, .remove-btn, th.remove-col").forEach(el=>{
         originalDisplay[el] = el.style.display;
         el.style.display = "none";
     });
     
-    const inputs = document.querySelectorAll('.form-group input, .form-group textarea');
+    const inputs = document.querySelectorAll('.form-group input, .form-group textarea, #tableBody input');
     inputs.forEach(input => {
         const span = document.getElementById(`print${input.id.charAt(0).toUpperCase() + input.id.slice(1)}`);
         if(span) {
@@ -316,7 +390,8 @@ function generatePDF(){
             filename:`Bill_${document.getElementById("refNo").value || 'Invoice'}.pdf`,
             html2canvas:{scale:2},
             jsPDF:{format:'a4', orientation:'portrait'}
-        }).save().then(()=>{
+        }).save().finally(()=>{
+            loadingOverlay.classList.remove('show');
             for(let el in originalDisplay){
                 el.style.display = originalDisplay[el];
             }
@@ -328,7 +403,7 @@ function generatePDF(){
                 }
             });
         });
-    },100);
+    }, 2000); // 2000ms = 2 seconds
 }
 </script>
 </body>
